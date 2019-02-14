@@ -125,7 +125,7 @@ with the binary *and* operation, which in python is written
 ```python
 x = x & 0b111
 ```
-This extracts the desired result of 0b110, or decimal 8. 
+This extracts the desired result of 0b110, or decimal 6. 
 
 We just need to make objects that can peform the right shifting and 
 masking for a specified bit field.  
