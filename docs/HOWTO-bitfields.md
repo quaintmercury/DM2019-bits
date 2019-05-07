@@ -47,13 +47,14 @@ spoon = spoon_extractor.extract(word)
 
 ## Preliminaries: bitfield.py
 
-We'll create a module ```bitfield.py```  (and we might as well 
-create ```test_bitfield.py``` as well.)  After the header
-docstring for ```bitfield.py```, we'll insert some standard 
+We'll create a module `bitfield.py`  (and we might as well 
+create `test_bitfield.py` as well).  After the header
+docstring for `bitfield.py`, we'll insert some standard 
 code for making it easy to turn some special logging 
 messages on and off.  These could be useful for debugging. 
 
 ```python
+"""
 A bit field is a range of binary digits within an
 unsigned integer.   Bit 0 is the low-order bit,
 with value 1 = 2^0.  Bit 31 is the high-order bit, 
@@ -63,6 +64,7 @@ A bitfield object is an aid to encoding and decoding
 instructions by packing and unpacking parts of the 
 instruction in different fields within individual 
 instruction words. 
+"""
 
 import logging
 logging.basicConfig()
@@ -76,11 +78,13 @@ we will write
 log.debug("some useful log message")
 ````
 
-If we have the level at ```logging.DEBUG```, the message 
+If we have the level at `logging.DEBUG`, the message 
 will be printed.  If we change it to 
+
 ```python
 log.setLevel(logging.INFO)
 ```
+
 the message will not be printed.  This can be much nicer
 than erasing or commenting out debug messages that 
 might come in handy again later. 
@@ -107,24 +111,35 @@ usual convention that lowest order bit is bit 0,
 the next bit is bit 1, etc; the highest bit is 7 
 and represents 2^7.  
 
-Suppose the input number is ```0b11110111``` (decimal 247).
+Suppose the input number is `0b11110111` (decimal 247).
+
 ```python
 x = 0b11110111
 ``` 
-We imagine this as (11)(110)(111); we want the 110 in the 
+
+We imagine this grouped as (11)(110)(111); we want the 110 in the 
 middle.  We start by shifting the whole number right 
-three bits, shoving the low-order 111 off the end. 
+three bits, shoving the low-order 111 off the end.  
+
 ```python
 x = x >> 3
 ```
-This gives us 0b11110, which we can imagine as 
+
+In programmer 
+slang, we say the rightmost three bits go into the *bit bucket*.  
+The *bit bucket* is not a real object, physical or virtual.  "Into the 
+bit bucket" just means "gone". 
+
+The shift gives us 0b11110, which we can imagine as 
 (11)(110), i.e., the part we want is now in the low-order bits. 
 We just need to get rid of the rest.  We can do this 
 with the binary *and* operation, which in python is written 
-```&```. 
+`&`.
+
 ```python
 x = x & 0b111
 ```
+
 This extracts the desired result of 0b110, or decimal 6. 
 
 We just need to make objects that can peform the right shifting and 
@@ -136,12 +151,12 @@ class BitField(object):
     bitfields from an integer. 
     """
         def __init__(self, from_bit: int, to_bit: int) -> None: 
-        """Tool for  extracting bits 
-        from_bit ... to_bit, where 0 is the low-order
-        bit and 31 is the high-order bit of an unsigned
-        32-bit integer. For example, the low-order 4 bits 
-        could be represented by from_bit=0, to_bit=3. 
-        """ 
+            """Tool for  extracting bits 
+            from_bit ... to_bit, where 0 is the low-order
+            bit and 31 is the high-order bit of an unsigned
+            32-bit integer. For example, the low-order 4 bits 
+            could be represented by from_bit=0, to_bit=3. 
+            """ 
 ```
 Just to be on the safe side, let's make sure the 
 field fits in the word size: 
@@ -425,3 +440,16 @@ masking to it.  Construct a mask of all 1 bits that is exactly
 as wide as the bit field, and use bitwise and (```&```) to 
 trim off leading ones before applying bitwise or (```|```) to insert 
 the value into the backed word. 
+
+## Bit field non-interference
+
+If your bit fields are working properly, non-overlapping fields 
+should not interfere with each other.  For example, if we have a field 
+that is made up of bits 0..3, another bit field 4..6, and another 7..10, 
+inserting and extracting values from the middle field should neither 
+affect values in the first and third field nor be affected by them ... 
+we should be able to treat each field as if it were a separate variable. 
+The final part of your project is to create at least two test cases 
+that check this property.  You will turn in test_bitfield.py as well 
+as bitfield.py. 
+
